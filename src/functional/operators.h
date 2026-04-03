@@ -218,6 +218,8 @@ struct Ops<double> {
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #include "3rd_party/simd_utils/simd_utils.h"
 #pragma GCC diagnostic pop
+#undef min
+#undef max
 #else
 #include "3rd_party/sse_mathfun.h"
 #include <immintrin.h>
