@@ -93,7 +93,10 @@ endif(USE_INTGEMM)
 
 if(USE_SIMD_UTILS)
   if(${CMAKE_TARGET_ARCHITECTURE_CODE} MATCHES "arm")
-    add_compile_definitions(ARM FMA SSE) #added for ARM
+    add_compile_definitions(ARM SSE)
+    if(ANDROID_ABI STREQUAL "arm64-v8a")
+      add_compile_definitions(FMA)
+    endif()
   endif()
   if(MSVC)
     add_compile_options(/flax-vector-conversions)

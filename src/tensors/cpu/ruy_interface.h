@@ -18,6 +18,19 @@
 
 #if RUY_PLATFORM_NEON
 #include <arm_neon.h>
+#if !defined(__aarch64__)
+// This is not exact; should be round-half-to-even (banker's rounding) like the
+// real vcvtnq_s32_f32, but this implements round-half-away-from-zero instead.
+// This level of precision doesn't matter because the values being quantized are
+// neural network weights/activations that are vanishingly unlikely to land on
+// exact 0.5 boundaries.
+static inline int32x4_t vcvtnq_s32_f32_emu(float32x4_t a) {
+    float32x4_t half = vdupq_n_f32(0.5f);
+    float32x4_t bias = vbslq_f32(vcltq_f32(a, vdupq_n_f32(0)), vnegq_f32(half), half);
+    return vcvtq_s32_f32(vaddq_f32(a, bias));
+}
+#define vcvtnq_s32_f32 vcvtnq_s32_f32_emu
+#endif
 #endif
 
 namespace marian {
