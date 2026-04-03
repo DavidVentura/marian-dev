@@ -9,7 +9,6 @@ if(NOT USE_WASM_COMPATIBLE_SOURCE)
   include_directories(./faiss)
 endif()
 
-add_subdirectory(./pathie-cpp)
 
 if(USE_INTGEMM)
   set(INTGEMM_DONT_BUILD_TESTS ON CACHE BOOL "Disable intgemm tests")
@@ -142,12 +141,8 @@ if(USE_SENTENCEPIECE)
 endif(USE_SENTENCEPIECE)
 
 include_directories(./CLI)
-include_directories(./pathie-cpp/include)
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_property(TARGET libyaml-cpp APPEND_STRING PROPERTY COMPILE_FLAGS
-    " -fPIC -Wno-unused-value")
-  set_property(TARGET pathie-cpp APPEND_STRING PROPERTY COMPILE_FLAGS
     " -fPIC -Wno-unused-value")
 endif()
 
