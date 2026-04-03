@@ -97,7 +97,6 @@ set(MARIAN_SOURCES
   translator/scorers.cpp
 
   $<TARGET_OBJECTS:libyaml-cpp>
-  $<TARGET_OBJECTS:pathie-cpp>
 )
 
 if (NOT USE_WASM_COMPATIBLE_SOURCE AND NOT ANDROID)
@@ -166,10 +165,6 @@ add_custom_target(marian_version DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/common/git_
 add_dependencies(marian marian_version) # marian must depend on it so that it gets created first
 # make sure all local dependencies are installed first before this is built
 add_dependencies(marian 3rd_party_installs)
-
-if(APPLE) # This is a dependency of pathie but I can't seem to link it into that CMakeLists because we're not compiling it as a library.
-   set(EXT_LIBS ${EXT_LIBS} iconv)
-endif()
 
 # Add external libs to the public interface of the library
 target_link_libraries(marian ${EXT_LIBS} ${CMAKE_THREAD_LIBS_INIT})

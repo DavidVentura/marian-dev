@@ -1,33 +1,11 @@
 #pragma once
 
-// This is a shallow wrapper around a filesystem path library.
-// We used this to wrap boost::filesystem, now we are wrapping
-// Pathie, a small open source lib.
+// Lightweight POSIX-based filesystem path abstraction for Linux/Android.
+// Replaces the previous pathie-cpp dependency.
 
-// @TODO: go back to canonical names for functions and objects
-// as specified in C++17 so it becomes easy to move in the future
-
-// Even when compiling with clang, __GNUC__ may be defined, so
-// we need to add some extra checks to avoid compile errors with
-// respect to -Wsuggest-override.
-#ifdef __GNUC__
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wunused-value"
-#  if defined(__has_warning)
-#    if __has_warning("-Wsuggest-override")
-#      pragma GCC diagnostic ignored "-Wsuggest-override"
-#    endif
-#  else
-#    pragma GCC diagnostic ignored "-Wsuggest-override"
-#  endif
-#endif
-
-#include "3rd_party/pathie-cpp/include/path.hpp"  // @TODO: update to latest Pathie
-#include "3rd_party/pathie-cpp/include/errors.hpp"
-
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+#include <string>
+#include <stdexcept>
+#include <cstddef>
 
 namespace marian {
 namespace filesystem {
@@ -37,83 +15,79 @@ namespace filesystem {
 
   class Path {
     private:
-      Pathie::Path path;
+      std::string path_;
 
     public:
       Path() {}
-      Path(const Path& p) : path{p.path} {}
+      Path(const Path& p) : path_{p.path_} {}
       Path& operator=(const Path& p) = default;
-      Path(const std::string& s) : path{s} {}
-      Path(const Pathie::Path& p) : path{p} {}
+      Path(const std::string& s) : path_{s} {}
 
-      Path parentPath() const {
-        return Path(path.parent());
-      }
-
-      Path filename() const {
-        return Path(path.basename());
-      }
-
-      Path extension() const {
-        return Path(path.extension());
-      }
+      Path parentPath() const;
+      Path filename() const;
+      Path extension() const;
 
       bool empty() const {
-        return path.str().empty();
-      }
-
-      const Pathie::Path& getImpl() const {
-        return path;
+        return path_.empty();
       }
 
       operator std::string() const {
-        return path.str();
+        return path_;
       }
 
       std::string string() const {
-        return path.str();
+        return path_;
       }
 
       bool operator==(const Path& p) const {
-        return path == p.path;
+        return path_ == p.path_;
       }
 
       bool operator!=(const Path& p) const {
-        return path != p.path;
+        return path_ != p.path_;
       }
+
+      // Internal helpers used by free functions
+      Path absolute(const Path& base) const;
+      Path absolute() const;
+      Path expand() const;
+      Path relative(const Path& base) const;
+      bool exists() const;
+      bool isDirectory() const;
+      size_t size() const;
+
+      friend Path operator/(const Path& lhs, const Path& rhs);
   };
 
+  Path currentPathImpl(); // defined in filesystem.cpp
+
   static inline Path currentPath() {
-    return Path(Pathie::Path::pwd());
+    return currentPathImpl();
   }
 
   static inline Path canonical(const Path& p, const Path& base) {
-    // create absolute base path
-    return p.getImpl().absolute(base.getImpl()).expand();
+    return p.absolute(base).expand();
   }
 
   static inline Path relative(const Path& p, const Path& base) {
-    // create a path relative to the base path
-    return p.getImpl().absolute().expand().relative(base.getImpl().absolute().expand());
+    return p.absolute().expand().relative(base.absolute().expand());
   }
 
   static inline bool exists(const Path& p) {
-    return p.getImpl().exists();
+    return p.exists();
   }
 
   static inline size_t fileSize(const Path& p) {
-    return p.getImpl().size();
+    return p.size();
   }
 
   static inline bool isDirectory(const Path& p) {
-    return p.getImpl().is_directory();
+    return p.isDirectory();
   }
 
-  static inline Path operator/ (const Path& lhs, const Path& rhs) {
-    return Path(lhs.getImpl() / rhs.getImpl());
-  }
+  Path operator/(const Path& lhs, const Path& rhs);
 
-  using FilesystemError = Pathie::PathieError;
+  using FilesystemError = std::runtime_error;
 
 }  // namespace filesystem
 }  // namespace marian
