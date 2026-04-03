@@ -27,14 +27,17 @@ static std::string strerror()
     {
         buff = "Unknown error";
     }
+#elif defined(__ANDROID__) && __ANDROID_API__ < 23
+    if (strerror_r(errno, &buff[0], buff.size()) != 0)
+    {
+        buff = "Unknown error";
+    }
 #elif (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || __APPLE__) && ! _GNU_SOURCE
-// XSI-compliant strerror_r()
     if (strerror_r(errno, &buff[0], buff.size()) != 0)
     {
         buff = "Unknown error";
     }
 #else
-// GNU-specific strerror_r()
     auto p = strerror_r(errno, &buff[0], buff.size());
     std::string tmp(p, std::strlen(p));
     std::swap(buff, tmp);
