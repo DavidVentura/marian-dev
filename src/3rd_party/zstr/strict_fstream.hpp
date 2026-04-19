@@ -37,6 +37,13 @@ static std::string strerror()
     {
         buff = "Unknown error";
     }
+#elif !defined(__GLIBC__)
+    // musl and other non-glibc libcs only provide the XSI-compliant strerror_r (int return),
+    // even when _GNU_SOURCE is defined.
+    if (strerror_r(errno, &buff[0], buff.size()) != 0)
+    {
+        buff = "Unknown error";
+    }
 #else
     auto p = strerror_r(errno, &buff[0], buff.size());
     std::string tmp(p, std::strlen(p));
