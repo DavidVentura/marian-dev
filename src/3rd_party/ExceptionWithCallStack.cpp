@@ -16,7 +16,7 @@
 #include <Windows.h>
 #include "DbgHelp.h"
 #pragma warning(pop)
-#else
+#elif defined(__GLIBC__)
 #include <execinfo.h>
 #include <cxxabi.h>
 #endif
@@ -197,7 +197,7 @@ static void CollectCallStack(size_t skipLevels, bool makeFunctionNamesStandOut, 
 
     SymCleanup(process);
 
-#else // Linux
+#elif defined(__GLIBC__) // Linux (glibc only; musl lacks <execinfo.h>)
 
     const unsigned int MAX_NUM_FRAMES = 1024;
     void* backtraceAddresses[MAX_NUM_FRAMES];
@@ -259,6 +259,10 @@ static void CollectCallStack(size_t skipLevels, bool makeFunctionNamesStandOut, 
     }
 
     free(symbolList);
+
+#else // non-glibc Linux (e.g. musl): backtrace() unavailable
+
+    write("    (call stack unavailable: built without glibc backtrace support)\n");
 
 #endif
 }
