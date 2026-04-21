@@ -6,6 +6,13 @@
 //
 
 //#define _CRT_SECURE_NO_WARNINGS // "secure" CRT not available on all platforms  --add this at the top of all CPP files that give "function or variable may be unsafe" warnings
+
+#ifndef _WIN32
+# if defined(__has_include) && __has_include(<features.h>)
+#  include <features.h>
+# endif
+#endif
+
 #ifdef _WIN32
 #pragma comment(lib, "Dbghelp.lib")
 #pragma warning(push)
