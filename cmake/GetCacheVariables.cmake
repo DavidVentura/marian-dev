@@ -30,8 +30,13 @@ foreach(_variableName ${_variableNames})
 
     # Skip static or internal cached variables, cmake -L[A] does not print them, see
     # https://github.com/Kitware/CMake/blob/master/Source/cmakemain.cxx#L282
+    # Also skip PATH/FILEPATH: those carry absolute paths that depend on the
+    # build host's layout and would break reproducible builds when baked into
+    # build_info.cpp.
     if( (NOT "${_variableType}" STREQUAL "STATIC") AND
         (NOT "${_variableType}" STREQUAL "INTERNAL") AND
+        (NOT "${_variableType}" STREQUAL "PATH") AND
+        (NOT "${_variableType}" STREQUAL "FILEPATH") AND
         (NOT "${_variableValue}" STREQUAL "") )
 
         string(REPLACE "\"" " " _variableValueEscapedQuotes ${_variableValue})
